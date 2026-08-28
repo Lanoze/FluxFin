@@ -72,3 +72,12 @@ body {
 .hero-banner {
   background: linear-gradient(135deg, #e0f7f4 0%, #f0fdf9 30%, #ffffff 50%, #f0fdf9 70%, #e0f7f4 100%);
 }
+
+/* Shake animation for error */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
