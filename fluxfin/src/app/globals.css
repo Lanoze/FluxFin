@@ -67,3 +67,8 @@ body {
   background: linear-gradient(135deg, #f0fdf9 0%, #e0f7f4 100%);
   border: 1px solid rgba(13, 148, 136, 0.2);
 }
+
+/* Dashboard Hero Banner */
+.hero-banner {
+  background: linear-gradient(135deg, #e0f7f4 0%, #f0fdf9 30%, #ffffff 50%, #f0fdf9 70%, #e0f7f4 100%);
+}

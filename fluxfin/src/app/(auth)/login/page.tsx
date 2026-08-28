@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { User, Lock, LogIn, Shield, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const router = useRouter();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -14,11 +16,27 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    // TODO: Implementar autenticação
-    setTimeout(() => {
+
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, senha: password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Erro ao fazer login");
+        setIsLoading(false);
+        return;
+      }
+
+      router.push("/dashboard");
+    } catch {
+      setError("Erro de conexão. Tente novamente.");
       setIsLoading(false);
-      setError("Usuário ou senha inválidos. Tente novamente.");
-    }, 1500);
+    }
   };
 
   return (
@@ -62,16 +80,16 @@ export default function LoginPage() {
 
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Campo Usuário */}
+          {/* Campo Email */}
           <div className="relative">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
               <User className="w-5 h-5" />
             </div>
             <input
-              type="text"
-              placeholder="Nome de usuário"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="input-field w-full pl-12 pr-4 py-3.5 rounded-xl bg-gray-50 text-gray-800 placeholder-gray-400 outline-none"
               required
             />
