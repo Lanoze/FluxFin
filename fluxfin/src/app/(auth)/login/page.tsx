@@ -2,19 +2,22 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { User, Lock, LogIn, Shield } from "lucide-react";
+import { User, Lock, LogIn, Shield, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
     // TODO: Implementar autenticação
     setTimeout(() => {
       setIsLoading(false);
+      setError("Usuário ou senha inválidos. Tente novamente.");
     }, 1500);
   };
 
@@ -89,6 +92,14 @@ export default function LoginPage() {
             />
           </div>
 
+          {/* Mensagem de Erro */}
+          {error && (
+            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <span className="text-sm text-red-600">{error}</span>
+            </div>
+          )}
+
           {/* Botão Entrar */}
           <button
             type="submit"
@@ -109,7 +120,7 @@ export default function LoginPage() {
         {/* Rodapé */}
         <div className="mt-8 pt-4 border-t border-gray-100 text-center">
           <p className="text-xs text-gray-400 tracking-wider">
-            V1.0.0 • FLUXFIN P&D+I
+            V1.0.0 • FluxFin • INESC P&D Brasil
           </p>
         </div>
       </div>
