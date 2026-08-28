@@ -95,22 +95,22 @@ export default function DashboardPage() {
 
         {/* Floating words */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <span className="absolute top-8 left-[10%] text-primary/20 text-2xl font-bold rotate-[-8deg]">
+          <span className="absolute text-primary/20 text-2xl font-bold rotate-[-8deg] animate-[float1_16s_ease-in-out_infinite]" style={{ top: "8%", left: "10%" }}>
             Tecnologia
           </span>
-          <span className="absolute top-[40%] left-[5%] text-primary/15 text-xl font-bold rotate-[-5deg]">
+          <span className="absolute text-primary/15 text-xl font-bold rotate-[-5deg] animate-[float2_20s_ease-in-out_infinite]" style={{ top: "40%", left: "5%" }}>
             Projeto
           </span>
-          <span className="absolute bottom-[20%] left-[8%] text-primary/20 text-lg font-bold rotate-[-3deg]">
+          <span className="absolute text-primary/20 text-lg font-bold rotate-[-3deg] animate-[float3_18s_ease-in-out_infinite]" style={{ bottom: "20%", left: "8%" }}>
             Contrato
           </span>
-          <span className="absolute bottom-8 left-[35%] text-primary/20 text-2xl font-bold">
+          <span className="absolute text-primary/20 text-2xl font-bold animate-[float1_14s_ease-in-out_infinite_reverse]" style={{ bottom: "8%", left: "35%" }}>
             Inovação
           </span>
-          <span className="absolute top-[30%] right-[8%] text-primary/15 text-xl font-bold rotate-[5deg]">
+          <span className="absolute text-primary/15 text-xl font-bold rotate-[5deg] animate-[float2_19s_ease-in-out_infinite]" style={{ top: "30%", right: "8%" }}>
             Ciência
           </span>
-          <span className="absolute bottom-[30%] right-[12%] text-primary/10 text-lg font-bold rotate-[3deg]">
+          <span className="absolute text-primary/10 text-lg font-bold rotate-[3deg] animate-[float3_16s_ease-in-out_infinite_reverse]" style={{ bottom: "30%", right: "12%" }}>
             P&D+I
           </span>
         </div>
