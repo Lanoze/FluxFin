@@ -82,11 +82,11 @@ const DDL = [
 
 const RUBRICAS = [
   ["RH", "Recursos Humanos", 1],
-  ["ST", "Softwares e Tecnologias", 2],
+  ["ST", "Serviços de Terceiros", 2],
   ["MC", "Materiais de Consumo", 3],
-  ["MPE", "Máquinas e Equipamentos", 4],
-  ["VD", "Viagens e Deslocamentos", 5],
-  ["CA", "Capacitação e Assessoria", 6],
+  ["MPE", "Materiais Permanentes e Equipamentos", 4],
+  ["VD", "Viagens e Diárias", 5],
+  ["CA", "Custos Administrativos / Outras Despesas", 6],
 ];
 
 async function main() {
@@ -119,7 +119,9 @@ async function main() {
     await client.query(
       `INSERT INTO "Rubrica" ("codigoAneel", descricao, ordem)
        VALUES ($1, $2, $3)
-       ON CONFLICT ("codigoAneel") DO NOTHING`,
+       ON CONFLICT ("codigoAneel") DO UPDATE SET
+         descricao = EXCLUDED.descricao,
+         ordem = EXCLUDED.ordem`,
       [codigo, descricao, ordem]
     );
   }
