@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getClient } from "@/lib/prisma";
+import { pool } from "@/lib/prisma";
 
 function getSession(request: Request) {
   const sessionCookie = request.headers.get("cookie")?.match(/session=([^;]+)/);
@@ -19,13 +19,11 @@ export async function GET(request: Request) {
   }
 
   try {
-    const client = await getClient();
-
-    const projetosResult = await client.query(
+    const projetosResult = await pool.query(
       'SELECT * FROM "Projeto" ORDER BY "createdAt" DESC'
     );
 
-    const alocacoesResult = await client.query(
+    const alocacoesResult = await pool.query(
       `SELECT a."projetoId", a."valorPrevisto", r.id AS "rubricaId",
               r."codigoAneel" AS "rubricaCodigo", r.descricao AS "rubricaDescricao", r.ordem AS "rubricaOrdem"
        FROM "AlocacaoOrcamentaria" a
@@ -165,11 +163,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const client = await getClient();
-
-    await client.query("BEGIN");
+    const client = await pool.connect();
 
     try {
+      await client.query("BEGIN");
+
       const inserted = await client.query(
         `INSERT INTO "Projeto"
            ("codigo", "titulo", "descricao", "dataInicio", "dataTermino", "orcamentoGlobal", "createdAt", "updatedAt")
@@ -243,6 +241,8 @@ export async function POST(request: Request) {
       }
 
       throw insertError;
+    } finally {
+      client.release();
     }
   } catch (error) {
     console.error("Erro ao criar projeto:", error);

@@ -17,16 +17,17 @@ model Usuario {
 }
 
 model Projeto {
-  id             Int              @id @default(autoincrement())
-  codigo         String           @unique
+  id             Int                    @id @default(autoincrement())
+  codigo         String                 @unique
   titulo         String
   descricao      String?
   dataInicio     DateTime
   dataTermino    DateTime
-  orcamentoGlobal Decimal          @db.Decimal(12, 2)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  orcamentoGlobal Decimal                @db.Decimal(12, 2)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
   alocacoes      AlocacaoOrcamentaria[]
+  despesas       Despesa[]
 }
 
 model Rubrica {
@@ -35,6 +36,7 @@ model Rubrica {
   descricao   String
   ordem       Int                   @default(0)
   alocacoes   AlocacaoOrcamentaria[]
+  despesas    Despesa[]
 }
 
 model AlocacaoOrcamentaria {
@@ -46,4 +48,19 @@ model AlocacaoOrcamentaria {
   rubrica       Rubrica @relation(fields: [rubricaId], references: [id])
 
   @@unique([projetoId, rubricaId])
+}
+
+model Despesa {
+  id             Int      @id @default(autoincrement())
+  projetoId      Int
+  rubricaId      Int
+  dataDespesa    DateTime
+  valorExecutado Decimal  @db.Decimal(12, 2)
+  descricao      String
+  comprovanteUrl String?
+  createdAt      DateTime @default(now())
+  projeto        Projeto  @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  rubrica        Rubrica  @relation(fields: [rubricaId], references: [id])
+
+  @@index([projetoId])
 }

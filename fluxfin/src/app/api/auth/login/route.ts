@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { getClient } from "@/lib/prisma";
+import { pool } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
@@ -13,8 +13,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const client = await getClient();
-    const result = await client.query(
+    const result = await pool.query(
       'SELECT * FROM "Usuario" WHERE "email" = $1',
       [email]
     );

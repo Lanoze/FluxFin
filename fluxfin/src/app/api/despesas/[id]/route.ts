@@ -22,46 +22,31 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const projetoId = Number(id);
+  const despesaId = Number(id);
 
-  if (!Number.isInteger(projetoId) || projetoId <= 0) {
+  if (!Number.isInteger(despesaId) || despesaId <= 0) {
     return NextResponse.json(
-      { error: "Identificador de projeto inválido" },
+      { error: "Identificador de despesa inválido" },
       { status: 400 }
     );
   }
 
   try {
-    const comDespesas = await pool.query(
-      'SELECT 1 FROM "Despesa" WHERE "projetoId" = $1 LIMIT 1',
-      [projetoId]
-    );
-
-    if ((comDespesas.rowCount ?? 0) > 0) {
-      return NextResponse.json(
-        {
-          error:
-            "Não é possível excluir o projeto enquanto houver despesas lançadas. Exclua as despesas primeiro.",
-        },
-        { status: 409 }
-      );
-    }
-
     const deleted = await pool.query(
-      'DELETE FROM "Projeto" WHERE id = $1 RETURNING id',
-      [projetoId]
+      'DELETE FROM "Despesa" WHERE id = $1 RETURNING id',
+      [despesaId]
     );
 
     if (deleted.rowCount === 0) {
       return NextResponse.json(
-        { error: "Projeto não encontrado" },
+        { error: "Despesa não encontrada" },
         { status: 404 }
       );
     }
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("Erro ao excluir projeto:", error);
+    console.error("Erro ao excluir despesa:", error);
     return NextResponse.json(
       { error: "Erro interno do servidor" },
       { status: 500 }

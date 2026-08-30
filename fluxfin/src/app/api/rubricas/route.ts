@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getClient } from "@/lib/prisma";
+import { pool } from "@/lib/prisma";
 
 function getSession(request: Request) {
   const sessionCookie = request.headers.get("cookie")?.match(/session=([^;]+)/);
@@ -19,9 +19,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const client = await getClient();
-
-    const result = await client.query(
+    const result = await pool.query(
       'SELECT id, "codigoAneel", descricao, ordem FROM "Rubrica" ORDER BY ordem ASC'
     );
 

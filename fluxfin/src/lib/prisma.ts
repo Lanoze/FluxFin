@@ -1,17 +1,12 @@
-import { Client } from "pg";
+import { Pool } from "pg";
 
-const client = new Client({
+const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  connectionTimeoutMillis: 10000,
 });
 
-let connected = false;
+pool.on("error", (error) => {
+  console.error("Erro inesperado na conexão com o banco de dados:", error);
+});
 
-async function getClient() {
-  if (!connected) {
-    await client.connect();
-    connected = true;
-  }
-  return client;
-}
-
-export { getClient };
+export { pool };
