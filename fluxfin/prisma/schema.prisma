@@ -15,3 +15,35 @@ model Usuario {
   nivelAcesso String   @default("pesquisador")
   createdAt   DateTime @default(now())
 }
+
+model Projeto {
+  id             Int              @id @default(autoincrement())
+  codigo         String           @unique
+  titulo         String
+  descricao      String?
+  dataInicio     DateTime
+  dataTermino    DateTime
+  orcamentoGlobal Decimal          @db.Decimal(12, 2)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  alocacoes      AlocacaoOrcamentaria[]
+}
+
+model Rubrica {
+  id          Int                   @id @default(autoincrement())
+  codigoAneel String                @unique
+  descricao   String
+  ordem       Int                   @default(0)
+  alocacoes   AlocacaoOrcamentaria[]
+}
+
+model AlocacaoOrcamentaria {
+  id            Int     @id @default(autoincrement())
+  projetoId     Int
+  rubricaId     Int
+  valorPrevisto Decimal @db.Decimal(12, 2)
+  projeto       Projeto @relation(fields: [projetoId], references: [id], onDelete: Cascade)
+  rubrica       Rubrica @relation(fields: [rubricaId], references: [id])
+
+  @@unique([projetoId, rubricaId])
+}
