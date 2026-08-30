@@ -5,6 +5,7 @@ import {
   Plus,
   ReceiptText,
   Trash2,
+  Pencil,
   CheckCircle2,
   AlertCircle,
   X,
@@ -67,6 +68,7 @@ export default function DespesasPage() {
   const [error, setError] = useState("");
   const [sucesso, setSucesso] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [editandoId, setEditandoId] = useState<number | null>(null);
   const [filtroProjeto, setFiltroProjeto] = useState("");
 
   const [form, setForm] = useState({
@@ -153,28 +155,41 @@ export default function DespesasPage() {
     setSubmitting(true);
 
     try {
-      const response = await fetch("/api/despesas", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projetoId: Number(form.projetoId),
-          rubricaId: Number(form.rubricaId),
-          dataDespesa: form.dataDespesa,
-          valorExecutado: valor,
-          descricao: form.descricao.trim(),
-          comprovanteUrl: form.comprovanteUrl.trim() || null,
-        }),
-      });
+      const response = await fetch(
+        editandoId ? `/api/despesas/${editandoId}` : "/api/despesas",
+        {
+          method: editandoId ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projetoId: Number(form.projetoId),
+            rubricaId: Number(form.rubricaId),
+            dataDespesa: form.dataDespesa,
+            valorExecutado: valor,
+            descricao: form.descricao.trim(),
+            comprovanteUrl: form.comprovanteUrl.trim() || null,
+          }),
+        }
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Erro ao lançar a despesa.");
+        setError(
+          data.error ||
+            (editandoId
+              ? "Erro ao atualizar a despesa."
+              : "Erro ao lançar a despesa.")
+        );
         setSubmitting(false);
         return;
       }
 
-      setSucesso("Despesa lançada com sucesso!");
+      setSucesso(
+        editandoId
+          ? "Despesa atualizada com sucesso!"
+          : "Despesa lançada com sucesso!"
+      );
+      setEditandoId(null);
       setForm({
         projetoId: "",
         rubricaId: "",
@@ -194,6 +209,22 @@ export default function DespesasPage() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const toDateInput = (iso: string) => iso.slice(0, 10);
+
+  const handleEdit = (despesa: Despesa) => {
+    setEditandoId(despesa.id);
+    setForm({
+      projetoId: String(despesa.projetoId),
+      rubricaId: String(despesa.rubricaId),
+      dataDespesa: toDateInput(despesa.dataDespesa),
+      valor: despesa.valorExecutado.toFixed(2).replace(".", ","),
+      descricao: despesa.descricao,
+      comprovanteUrl: despesa.comprovanteUrl ?? "",
+    });
+    setError("");
+    setShowForm(true);
   };
 
   const handleDelete = async (despesa: Despesa) => {
@@ -282,7 +313,21 @@ export default function DespesasPage() {
 
           <button
             onClick={() => {
-              setShowForm((prev) => !prev);
+              if (showForm) {
+                setShowForm(false);
+                setEditandoId(null);
+              } else {
+                setEditandoId(null);
+                setForm({
+                  projetoId: "",
+                  rubricaId: "",
+                  dataDespesa: "",
+                  valor: "",
+                  descricao: "",
+                  comprovanteUrl: "",
+                });
+                setShowForm(true);
+              }
               setError("");
             }}
             className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all ${
@@ -373,7 +418,9 @@ export default function DespesasPage() {
             <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">
-                  Novo Lançamento de Despesa
+                  {editandoId
+                    ? "Edição de Despesa"
+                    : "Novo Lançamento de Despesa"}
                 </h2>
                 <p className="text-sm text-gray-500">
                   Vincule a despesa a um projeto e à rubrica correspondente.
@@ -381,7 +428,7 @@ export default function DespesasPage() {
               </div>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
                 <ReceiptText className="w-3.5 h-3.5" />
-                Despesa
+                {editandoId ? "Editando despesa" : "Despesa"}
               </span>
             </div>
 
@@ -506,6 +553,7 @@ export default function DespesasPage() {
                   type="button"
                   onClick={() => {
                     setShowForm(false);
+                    setEditandoId(null);
                     setError("");
                   }}
                   className="px-5 py-3 rounded-xl text-gray-600 font-semibold hover:bg-gray-100 transition-colors"
@@ -522,7 +570,11 @@ export default function DespesasPage() {
                   ) : (
                     <Save className="w-5 h-5" />
                   )}
-                  {submitting ? "Lançando..." : "Lançar Despesa"}
+                  {submitting
+                    ? "Salvando..."
+                    : editandoId
+                    ? "Salvar Alterações"
+                    : "Lançar Despesa"}
                 </button>
               </div>
             </form>
@@ -714,18 +766,27 @@ export default function DespesasPage() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <button
-                            onClick={() => handleDelete(despesa)}
-                            disabled={deletingId === despesa.id}
-                            className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-                            title="Excluir despesa"
-                          >
-                            {deletingId === despesa.id ? (
-                              <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
-                          </button>
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => handleEdit(despesa)}
+                              className="p-2 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors"
+                              title="Editar despesa"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(despesa)}
+                              disabled={deletingId === despesa.id}
+                              className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                              title="Excluir despesa"
+                            >
+                              {deletingId === despesa.id ? (
+                                <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );

@@ -5,6 +5,7 @@ import {
   Plus,
   FolderKanban,
   Trash2,
+  Pencil,
   ChevronDown,
   ChevronUp,
   CheckCircle2,
@@ -62,6 +63,7 @@ export default function ProjetosPage() {
   const [sucesso, setSucesso] = useState("");
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [editandoId, setEditandoId] = useState<number | null>(null);
 
   const [form, setForm] = useState({
     codigo: "",
@@ -168,28 +170,41 @@ export default function ProjetosPage() {
     setSubmitting(true);
 
     try {
-      const response = await fetch("/api/projetos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          orcamentoGlobal,
-          alocacoes: rubricas.map((r) => ({
-            rubricaId: r.id,
-            valorPrevisto: parseMoeda(alocacoes[r.id] || ""),
-          })),
-        }),
-      });
+      const response = await fetch(
+        editandoId ? `/api/projetos/${editandoId}` : "/api/projetos",
+        {
+          method: editandoId ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...form,
+            orcamentoGlobal,
+            alocacoes: rubricas.map((r) => ({
+              rubricaId: r.id,
+              valorPrevisto: parseMoeda(alocacoes[r.id] || ""),
+            })),
+          }),
+        }
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Erro ao cadastrar o projeto.");
+        setError(
+          data.error ||
+            (editandoId
+              ? "Erro ao atualizar o projeto."
+              : "Erro ao cadastrar o projeto.")
+        );
         setSubmitting(false);
         return;
       }
 
-      setSucesso("Projeto cadastrado com sucesso!");
+      setSucesso(
+        editandoId
+          ? "Projeto atualizado com sucesso!"
+          : "Projeto cadastrado com sucesso!"
+      );
+      setEditandoId(null);
       setForm({
         codigo: "",
         titulo: "",
@@ -237,6 +252,29 @@ export default function ProjetosPage() {
     }
   };
 
+  const toDateInput = (iso: string) => iso.slice(0, 10);
+
+  const handleEdit = (projeto: Projeto) => {
+    setEditandoId(projeto.id);
+    setForm({
+      codigo: projeto.codigo,
+      titulo: projeto.titulo,
+      descricao: projeto.descricao ?? "",
+      dataInicio: toDateInput(projeto.dataInicio),
+      dataTermino: toDateInput(projeto.dataTermino),
+      orcamentoGlobal: projeto.orcamentoGlobal.toFixed(2).replace(".", ","),
+    });
+
+    const valores: Record<number, string> = {};
+    projeto.alocacoes.forEach(
+      (a) => (valores[a.rubricaId] = a.valorPrevisto.toFixed(2).replace(".", ","))
+    );
+    setAlocacoes(valores);
+    setExpandedId(null);
+    setError("");
+    setShowForm(true);
+  };
+
   const totalAlocadoPorProjeto = (projeto: Projeto) =>
     projeto.alocacoes.reduce((acc, a) => acc + a.valorPrevisto, 0);
 
@@ -262,7 +300,22 @@ export default function ProjetosPage() {
 
           <button
             onClick={() => {
-              setShowForm((prev) => !prev);
+              if (showForm) {
+                setShowForm(false);
+                setEditandoId(null);
+              } else {
+                setEditandoId(null);
+                setForm({
+                  codigo: "",
+                  titulo: "",
+                  descricao: "",
+                  dataInicio: "",
+                  dataTermino: "",
+                  orcamentoGlobal: "",
+                });
+                setAlocacoes({});
+                setShowForm(true);
+              }
               setError("");
             }}
             className={`inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all ${
@@ -311,7 +364,7 @@ export default function ProjetosPage() {
             <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-3">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">
-                  Cadastro de Projeto
+                  {editandoId ? "Edição de Projeto" : "Cadastro de Projeto"}
                 </h2>
                 <p className="text-sm text-gray-500">
                   Parametrize as informacoes gerais e a alocacao orcamentaria
@@ -320,7 +373,7 @@ export default function ProjetosPage() {
               </div>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
                 <FolderKanban className="w-3.5 h-3.5" />
-                Novo projeto
+                {editandoId ? "Editando projeto" : "Novo projeto"}
               </span>
             </div>
 
@@ -542,6 +595,7 @@ export default function ProjetosPage() {
                   type="button"
                   onClick={() => {
                     setShowForm(false);
+                    setEditandoId(null);
                     setError("");
                   }}
                   className="px-5 py-3 rounded-xl text-gray-600 font-semibold hover:bg-gray-100 transition-colors"
@@ -652,6 +706,7 @@ export default function ProjetosPage() {
                         onToggleExpand={() =>
                           setExpandedId(expanded ? null : projeto.id)
                         }
+                        onEdit={() => handleEdit(projeto)}
                         onDelete={() => handleDelete(projeto)}
                       />
                     );
@@ -672,6 +727,7 @@ interface FragmentItemProps {
   expanded: boolean;
   deleting: boolean;
   onToggleExpand: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }
 
@@ -681,6 +737,7 @@ function FragmentItem({
   expanded,
   deleting,
   onToggleExpand,
+  onEdit,
   onDelete,
 }: FragmentItemProps) {
   const percentualGlobal =
@@ -748,18 +805,27 @@ function FragmentItem({
           </div>
         </td>
         <td className="px-4 py-3 text-center">
-          <button
-            onClick={onDelete}
-            disabled={deleting}
-            className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-            title="Excluir projeto"
-          >
-            {deleting ? (
-              <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Trash2 className="w-4 h-4" />
-            )}
-          </button>
+          <div className="flex items-center justify-center gap-1">
+            <button
+              onClick={onEdit}
+              className="p-2 rounded-lg text-gray-400 hover:text-primary hover:bg-primary/10 transition-colors"
+              title="Editar projeto"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+            <button
+              onClick={onDelete}
+              disabled={deleting}
+              className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+              title="Excluir projeto"
+            >
+              {deleting ? (
+                <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+            </button>
+          </div>
         </td>
       </tr>
 
