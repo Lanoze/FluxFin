@@ -11,6 +11,7 @@ import {
   X,
   Save,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
 
 interface Alocacao {
@@ -63,6 +64,7 @@ const chaveRubrica = (projetoId: number, rubricaId: number) =>
 export default function DespesasPage() {
   const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [despesas, setDespesas] = useState<Despesa[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -93,7 +95,8 @@ export default function DespesasPage() {
         if (Array.isArray(projetosResult)) setProjetos(projetosResult);
         if (Array.isArray(despesasResult)) setDespesas(despesasResult);
       })
-      .catch(() => setError("Erro ao carregar os dados. Tente novamente."));
+      .catch(() => setError("Erro ao carregar os dados. Tente novamente."))
+      .finally(() => setLoading(false));
   }, []);
 
   const projetoSelecionado = useMemo(
@@ -590,13 +593,15 @@ export default function DespesasPage() {
               Despesas Lançadas
             </h2>
             <p className="text-sm text-gray-500">
-              {despesas.length > 0
+              {loading
+                ? "Carregando despesas..."
+                : despesas.length > 0
                 ? `${despesas.length} lançamento${despesas.length > 1 ? "s" : ""}`
                 : "Nenhuma despesa lançada ainda"}
             </p>
           </div>
 
-          {despesas.length > 0 && (
+          {!loading && despesas.length > 0 && (
             <div className="flex items-center gap-3">
               <label className="text-sm font-medium text-gray-500">
                 Projeto:
@@ -619,7 +624,12 @@ export default function DespesasPage() {
           )}
         </div>
 
-        {projetos.length === 0 ? (
+        {loading ? (
+          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+            <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-3" />
+            <p className="text-sm text-gray-500">Carregando despesas...</p>
+          </div>
+        ) : projetos.length === 0 ? (
           <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <ReceiptText className="w-8 h-8 text-primary" />

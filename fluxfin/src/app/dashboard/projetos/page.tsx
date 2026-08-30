@@ -12,6 +12,7 @@ import {
   AlertCircle,
   X,
   Save,
+  Loader2,
 } from "lucide-react";
 
 interface Rubrica {
@@ -57,6 +58,7 @@ const formatData = (iso: string) =>
 export default function ProjetosPage() {
   const [rubricas, setRubricas] = useState<Rubrica[]>([]);
   const [projetos, setProjetos] = useState<Projeto[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -89,7 +91,8 @@ export default function ProjetosPage() {
         if (Array.isArray(rubricasResult)) setRubricas(rubricasResult);
         if (Array.isArray(projetosResult)) setProjetos(projetosResult);
       })
-      .catch(() => setError("Erro ao carregar os dados. Tente novamente."));
+      .catch(() => setError("Erro ao carregar os dados. Tente novamente."))
+      .finally(() => setLoading(false));
   }, []);
 
   const totalAlocado = useMemo(
@@ -628,14 +631,21 @@ export default function ProjetosPage() {
               Projetos Cadastrados
             </h2>
             <p className="text-sm text-gray-500">
-              {projetos.length > 0
+              {loading
+                ? "Carregando projetos..."
+                : projetos.length > 0
                 ? `${projetos.length} projeto${projetos.length > 1 ? "s" : ""} cadastrado${projetos.length > 1 ? "s" : ""}`
                 : "Nenhum projeto cadastrado ainda"}
             </p>
           </div>
         </div>
 
-        {projetos.length === 0 ? (
+        {loading ? (
+          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+            <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-3" />
+            <p className="text-sm text-gray-500">Carregando projetos...</p>
+          </div>
+        ) : projetos.length === 0 ? (
           <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <FolderKanban className="w-8 h-8 text-primary" />
