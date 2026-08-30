@@ -12,68 +12,8 @@ import {
   CheckCircle2,
   Receipt,
 } from "lucide-react";
-
-interface RubricaFluxo {
-  rubricaId: number;
-  rubricaCodigo: string;
-  rubricaDescricao: string;
-  valorPrevisto: number;
-  valorExecutado: number;
-  saldo: number;
-  percentual: number;
-}
-
-interface MesFluxo {
-  mes: string;
-  entradas: number;
-  saidas: number;
-  entradasAcumuladas: number;
-  saidasAcumuladas: number;
-  saldoAcumulado: number;
-}
-
-interface ProjetoFluxo {
-  id: number;
-  codigo: string;
-  titulo: string;
-  dataInicio: string;
-  dataTermino: string;
-  orcamentoGlobal: number;
-  totalExecutado: number;
-  saldoProjeto: number;
-  percentualProjeto: number;
-  rubricas: RubricaFluxo[];
-  fluxoMensal: MesFluxo[];
-}
-
-interface Fluxo {
-  resumo: {
-    qtdProjetos: number;
-    orcamentoGlobal: number;
-    totalExecutado: number;
-    saldoGeral: number;
-    percentualGlobal: number;
-  };
-  projetos: ProjetoFluxo[];
-  fluxoConsolidado: MesFluxo[];
-}
-
-const formatBRL = (valor: number) =>
-  new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(valor);
-
-const formatData = (iso: string) =>
-  new Date(iso).toLocaleDateString("pt-BR", { timeZone: "UTC" });
-
-const mesCurto = (mes: string) => {
-  const [ano, indice] = mes.split("-").map(Number);
-  const label = new Date(ano, indice - 1, 1)
-    .toLocaleDateString("pt-BR", { month: "short" })
-    .replace(".", "");
-  return `${label}/${String(ano).slice(2)}`;
-};
+import type { Fluxo } from "@/lib/fluxo";
+import { formatBRL, formatData, mesCurto } from "@/lib/format";
 
 const badgeSaldo = (saldo: number) =>
   saldo >= 0
