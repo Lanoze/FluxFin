@@ -139,19 +139,17 @@ export function gerarRelatorioPDF(opcoes: OpcoesRelatorio) {
   doc.setFontSize(8.5);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(80, 84, 88);
-  doc.text(
-    `${opcoes.filtroProjetoId ? `Projeto selecionado.` : "Abrange todos os projetos cadastrados."} Relatório gerencial consolidado em tempo real a partir das despesas lançadas e da alocação orçamentária por rubricas ANEEL.`,
-    MARGEM,
-    y,
-    { maxWidth: LARGURA_UTIL }
-  );
-  doc.text(
-    `Gerado em ${dataAtualPorExtenso()} por ${opcoes.nomeUsuario}.`,
-    MARGEM,
-    y + 5,
-    { maxWidth: LARGURA_UTIL }
-  );
-  y += 12;
+
+  const textoIntro = `${opcoes.filtroProjetoId ? `Projeto selecionado.` : "Abrange todos os projetos cadastrados."} Relatório gerencial consolidado em tempo real a partir das despesas lançadas e da alocação orçamentária por rubricas ANEEL.`;
+  doc.text(textoIntro, MARGEM, y, { maxWidth: LARGURA_UTIL });
+
+  const dimIntro = doc.getTextDimensions(textoIntro, { maxWidth: LARGURA_UTIL });
+
+  const textoData = `Gerado em ${dataAtualPorExtenso()} por ${opcoes.nomeUsuario}.`;
+  doc.text(textoData, MARGEM, y + dimIntro.h + 3, { maxWidth: LARGURA_UTIL });
+
+  const dimData = doc.getTextDimensions(textoData, { maxWidth: LARGURA_UTIL });
+  y += dimIntro.h + dimData.h + 8;
 
   const resumo = obterResumo(opcoes.filtroProjetoId, opcoes.fluxo);
   const serieFluxo = obterSerieFluxo(opcoes.filtroProjetoId, opcoes.fluxo);
