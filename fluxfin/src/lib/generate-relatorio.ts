@@ -47,7 +47,18 @@ function desenharCabecalho(
 
   if (logoDataUrl) {
     try {
-      doc.addImage(logoDataUrl, "PNG", largura - MARGEM - 14, 4, 14, 14);
+      const logoLargura = 36;
+      const logoAltura = 12;
+      const cabecalhoAltura = 26;
+      const logoY = (cabecalhoAltura - logoAltura) / 2;
+      doc.addImage(
+        logoDataUrl,
+        "PNG",
+        largura - MARGEM - logoLargura,
+        logoY,
+        logoLargura,
+        logoAltura
+      );
     } catch {
       // logo é opcional; segue sem ele
     }
